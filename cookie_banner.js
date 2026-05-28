@@ -218,7 +218,7 @@ function privacy_cb_openModal() {
 	privacy_cb_removeModal();
 	var dialog = privacy_cb_createDialog();
 	document.body.appendChild(dialog);
-	dialog.showModal();
+	try { dialog.showModal(); } catch (e) { dialog.setAttribute('open', ''); }
 }
 
 // ─── banner ────────────────────────────────────────────────────────────────
