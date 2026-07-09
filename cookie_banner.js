@@ -1,7 +1,7 @@
 <script>
 	(function () {
 
-		// Set window.privacy_allow = {disabled: true } before this script to suppress the banner entirely
+		// Set window.privacy_allow = { disabled: true } before this script to suppress the banner entirely
 		var privacy_allow = Object.assign({ disabled: false }, window.privacy_allow || {});
 		window.privacy_allow = privacy_allow;
 
@@ -22,7 +22,7 @@
 			fontFamily: 'inherit',
 			buttonRadius: '4px',
 			privacyPolicyUrl: '/privacy/',
-			variant: 'simple',
+			variant: 'manage',
 			bannerText: 'We use cookies and tracking technologies to improve your browsing experience on our website, to show you personalized content, and to analyze our website traffic. Read our [privacy policy] to learn more.',
 			declineLabel: 'Decline',
 			manageLabel: 'Manage',
@@ -32,6 +32,8 @@
 			submitLabel: 'Submit Preferences',
 			rejectLabel: 'Reject all',
 			cancelLabel: 'Cancel',
+			onAccept: null,
+			onDecline: null,
 			categories: [
 				{
 					id: 'tracking',
@@ -60,16 +62,17 @@
 			var el = document.getElementById('di-cookie-pref-dialog');
 			if (!el) return;
 			try { el.close(); } catch (e) { }
-			if (el.parentNode) el.parentNode.removeChild(el);
 		}
 
 		function privacy_cb_accept() {
 			try { if (window.DiPrivacy && typeof window.DiPrivacy.accept === 'function') window.DiPrivacy.accept(); } catch (e) { }
+			try { if (typeof privacy_config.onAccept === 'function') privacy_config.onAccept(); } catch (e) { }
 			privacy_cb_removeModal(); privacy_cb_removeBanner();
-		}
+		}          
 
 		function privacy_cb_reject() {
 			try { if (window.DiPrivacy && typeof window.DiPrivacy.deny === 'function') window.DiPrivacy.deny(); } catch (e) { }
+			try { if (typeof privacy_config.onDecline === 'function') privacy_config.onDecline(); } catch (e) { }
 			privacy_cb_removeModal(); privacy_cb_removeBanner();
 		}
 
@@ -99,12 +102,14 @@
 			var css = '';
 
 			css += '#di-consent-banner{position:fixed;bottom:0;left:0;right:0;z-index:9999999999;background:var(--di-cb-bg);box-shadow:0 -4px 16px rgba(0,0,0,.10);padding:20px 24px;font-family:var(--di-cb-font);box-sizing:border-box;}';
+			css += '@media(max-width:420px){#di-consent-banner{min-height:270px;}}';
 			css += '#di-consent-banner .di-cb__inner{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:32px;max-width:1280px;margin:0 auto;}';
-			css += '@media(min-width:640px){#di - consent - banner.di - cb__inner{flex - direction:row;}}';
-			css += '#di-consent-banner .di-cb__text{font - size:14px;color:var(--di-cb-text);margin:0;}';
+			css += '@media(min-width:640px){#di-consent-banner .di-cb__inner{flex-direction:row;}}';
+			css += '#di-consent-banner .di-cb__text{font-size:14px;color:var(--di-cb-text);margin:0;}';
 			css += '#di-consent-banner .di-cb__learn{color:var(--di-cb-primary);text-decoration:underline;transition:opacity .2s ease;}';
 			css += '#di-consent-banner .di-cb__learn:hover{opacity:.8;}';
 			css += '#di-consent-banner .di-cb__actions{display:flex;gap:8px!important;flex-shrink:0;}';
+			css += '@media(max-width:639px){#di-consent-banner .di-cb__actions{width:100%;flex-direction:column-reverse;}}';
 			css += '#di-consent-banner .di-cb__btn{cursor:pointer;font-size:16px;font-weight:500;padding:12px 24px;border-radius:var(--di-cb-radius);border:1px solid transparent;line-height:1;white-space:nowrap;transition:background .2s ease,color .2s ease,opacity .2s ease;}';
 			css += '#di-consent-banner .di-cb__btn--secondary{background:transparent;border-color:var(--di-cb-primary);color:var(--di-cb-primary);}';
 			css += '#di-consent-banner .di-cb__btn--secondary:hover{background:var(--di-cb-primary);color:#fff;}';
@@ -117,17 +122,17 @@
 			css += '#di-cookie-pref-dialog::backdrop{background:rgba(0,0,0,.45);animation:di-cm-fadein .18s ease;}';
 			css += '#di-cookie-pref-dialog .di-cm__header{padding:22px 24px 0;}';
 			css += '#di-cookie-pref-dialog .di-cm__title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}';
-			css += '#di-cookie-pref-dialog .di-cm__title{font - size:19px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;}';
+			css += '#di-cookie-pref-dialog .di-cm__title{font-size:19px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;}';
 			css += '#di-cookie-pref-dialog .di-cm__close{background:none;border:none;cursor:pointer;color:#9ca3af;font-size:22px;line-height:1;padding:0;flex-shrink:0;margin-top:2px;transition:color .15s ease;}';
 			css += '#di-cookie-pref-dialog .di-cm__close:hover{color:#374151;}';
-			css += '#di-cookie-pref-dialog .di-cm__desc{font - size:13px;color:#6b7280;margin:0;line-height:1.55;padding:0 24px;}';
+			css += '#di-cookie-pref-dialog .di-cm__desc{font-size:13px;color:#6b7280;margin:0;line-height:1.55;padding:0 24px;}';
 			css += '#di-cookie-pref-dialog .di-cm__desc a{color:var(--di-cb-primary);text-decoration:underline;}';
-			css += '#di-cookie-pref-dialog .di-cm__rows{margin - top:16px;border-top:1px solid #f3f4f6;}';
+			css += '#di-cookie-pref-dialog .di-cm__rows{margin-top:16px;border-top:1px solid #f3f4f6;}';
 			css += '#di-cookie-pref-dialog .di-cm__item{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid #f3f4f6;}';
 			css += '#di-cookie-pref-dialog .di-cm__item-info{flex:1;}';
-			css += '#di-cookie-pref-dialog .di-cm__item-label{font - size:14px;font-weight:600;color:#111827;margin:0 0 4px;}';
-			css += '#di-cookie-pref-dialog .di-cm__item-desc{font - size:12px;color:#6b7280;margin:0;line-height:1.5;}';
-			css += '#di-cookie-pref-dialog .di-cm__toggle-wrap{flex - shrink:0;position:relative;width:44px;height:24px;margin-top:2px;}';
+			css += '#di-cookie-pref-dialog .di-cm__item-label{font-size:14px;font-weight:600;color:#111827;margin:0 0 4px;}';
+			css += '#di-cookie-pref-dialog .di-cm__item-desc{font-size:12px;color:#6b7280;margin:0;line-height:1.5;}';
+			css += '#di-cookie-pref-dialog .di-cm__toggle-wrap{flex-shrink:0;position:relative;width:44px;height:24px;margin-top:2px;}';
 			css += '#di-cookie-pref-dialog .di-cm__toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}';
 			css += '#di-cookie-pref-dialog .di-cm__toggle-track{position:absolute;inset:0;background:#d1d5db;border-radius:999px;cursor:pointer;transition:background .2s ease;}';
 			css += '#di-cookie-pref-dialog .di-cm__toggle-track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s ease;}';
@@ -180,6 +185,7 @@
 			desc.appendChild(document.createTextNode('.'));
 
 			var rows = privacy_cb_el('div', { className: 'di-cm__rows' });
+			var toggleInputs = [];
 			privacy_config.categories.forEach(function (cat) {
 				var row = privacy_cb_el('div', { className: 'di-cm__item' });
 				var info = privacy_cb_el('div', { className: 'di-cm__item-info' });
@@ -188,6 +194,7 @@
 				var wrap = privacy_cb_el('label', { className: 'di-cm__toggle-wrap' });
 				var input = privacy_cb_el('input', { type: 'checkbox', id: 'di-cm-' + cat.id + '-toggle', checked: cat.defaultOn !== false });
 				var track = privacy_cb_el('span', { className: 'di-cm__toggle-track' });
+				toggleInputs.push(input);
 				info.appendChild(lbl); info.appendChild(dsc);
 				wrap.appendChild(input); wrap.appendChild(track);
 				row.appendChild(info); row.appendChild(wrap);
@@ -197,7 +204,14 @@
 			var footer = privacy_cb_el('div', { className: 'di-cm__footer' });
 			var cancelBtn = privacy_cb_el('button', { className: 'di-cm__btn di-cm__btn--cancel', type: 'button', textContent: privacy_config.cancelLabel });
 			var rejectBtn = privacy_cb_el('button', { className: 'di-cm__btn di-cm__btn--reject', type: 'button', textContent: privacy_config.rejectLabel });
+			rejectBtn.setAttribute('data-event', 'consent_reject');
 			var submitBtn = privacy_cb_el('button', { className: 'di-cm__btn di-cm__btn--submit', type: 'button', textContent: privacy_config.submitLabel });
+			function privacy_cb_updateSubmitEvent() {
+				var anyOff = toggleInputs.some(function (t) { return !t.checked; });
+				submitBtn.setAttribute('data-event', anyOff ? 'consent_reject' : 'consent_accept');
+			}
+			privacy_cb_updateSubmitEvent();
+			toggleInputs.forEach(function (t) { t.addEventListener('change', privacy_cb_updateSubmitEvent); });
 			cancelBtn.addEventListener('click', privacy_cb_removeModal);
 			rejectBtn.addEventListener('click', privacy_cb_rejectAll);
 			submitBtn.addEventListener('click', privacy_cb_savePreferences);
@@ -215,10 +229,8 @@
 		}
 
 		function privacy_cb_openModal() {
-			privacy_cb_removeModal();
-			var dialog = privacy_cb_createDialog();
-			document.body.appendChild(dialog);
-			try { dialog.showModal(); } catch (e) { dialog.setAttribute('open', ''); }
+			var dialog = document.getElementById('di-cookie-pref-dialog');
+			if (dialog) dialog.showModal();
 		}
 
 		// ─── banner ────────────────────────────────────────────────────────────────
@@ -241,7 +253,9 @@
 			var secondary = privacy_config.variant === 'manage'
 				? privacy_cb_el('button', { className: 'di-cb__btn di-cb__btn--secondary', type: 'button', textContent: privacy_config.manageLabel })
 				: privacy_cb_el('button', { className: 'di-cb__btn di-cb__btn--secondary', type: 'button', textContent: privacy_config.declineLabel });
+			if (privacy_config.variant !== 'manage') secondary.setAttribute('data-event', 'consent_reject');
 			var acceptBtn = privacy_cb_el('button', { className: 'di-cb__btn di-cb__btn--primary', type: 'button', textContent: privacy_config.acceptLabel });
+			acceptBtn.setAttribute('data-event', 'consent_accept');
 
 			secondary.addEventListener('click', privacy_config.variant === 'manage' ? privacy_cb_openModal : privacy_cb_reject);
 			acceptBtn.addEventListener('click', privacy_cb_accept);
@@ -261,6 +275,7 @@
 			if (window.privacy_allow.disabled === true) return;
 			if (!window.DiPrivacy || window.DiPrivacy.consent !== 'pending' || window.DiPrivacy.gpcEnabled) return;
 			privacy_cb_injectStyles();
+			document.body.appendChild(privacy_cb_createDialog());
 			var banner = privacy_cb_createBanner();
 			banner.style.setProperty('--di-cb-primary', privacy_config.primaryColor);
 			banner.style.setProperty('--di-cb-bg', privacy_config.bgColor);
